@@ -1,6 +1,15 @@
 import * as React from "react";
-import { List, Datagrid, ListProps, DateField, TextField } from "react-admin";
+import {
+  List,
+  Datagrid,
+  ListProps,
+  TextField,
+  DateField,
+  ReferenceField,
+} from "react-admin";
 import Pagination from "../Components/Pagination";
+import { CUSTOMER_TITLE_FIELD } from "../customer/CustomerTitle";
+import { PAYMENTMETHOD_TITLE_FIELD } from "../paymentMethod/PaymentMethodTitle";
 
 export const TransactionList = (props: ListProps): React.ReactElement => {
   return (
@@ -12,8 +21,24 @@ export const TransactionList = (props: ListProps): React.ReactElement => {
       pagination={<Pagination />}
     >
       <Datagrid rowClick="show">
+        <TextField label="amount" source="amount" />
         <DateField source="createdAt" label="Created At" />
+        <ReferenceField
+          label="Customer"
+          source="customer.id"
+          reference="Customer"
+        >
+          <TextField source={CUSTOMER_TITLE_FIELD} />
+        </ReferenceField>
+        <TextField label="date" source="date" />
         <TextField label="ID" source="id" />
+        <ReferenceField
+          label="PaymentMethod"
+          source="paymentmethod.id"
+          reference="PaymentMethod"
+        >
+          <TextField source={PAYMENTMETHOD_TITLE_FIELD} />
+        </ReferenceField>
         <DateField source="updatedAt" label="Updated At" />
       </Datagrid>
     </List>

@@ -17,7 +17,11 @@ import { Transaction } from "./Transaction";
 import { TransactionCountArgs } from "./TransactionCountArgs";
 import { TransactionFindManyArgs } from "./TransactionFindManyArgs";
 import { TransactionFindUniqueArgs } from "./TransactionFindUniqueArgs";
+import { CreateTransactionArgs } from "./CreateTransactionArgs";
+import { UpdateTransactionArgs } from "./UpdateTransactionArgs";
 import { DeleteTransactionArgs } from "./DeleteTransactionArgs";
+import { Customer } from "../../customer/base/Customer";
+import { PaymentMethod } from "../../paymentMethod/base/PaymentMethod";
 import { TransactionService } from "../transaction.service";
 @graphql.Resolver(() => Transaction)
 export class TransactionResolverBase {
@@ -51,6 +55,63 @@ export class TransactionResolverBase {
   }
 
   @graphql.Mutation(() => Transaction)
+  async createTransaction(
+    @graphql.Args() args: CreateTransactionArgs
+  ): Promise<Transaction> {
+    return await this.service.createTransaction({
+      ...args,
+      data: {
+        ...args.data,
+
+        customer: args.data.customer
+          ? {
+              connect: args.data.customer,
+            }
+          : undefined,
+
+        paymentMethod: args.data.paymentMethod
+          ? {
+              connect: args.data.paymentMethod,
+            }
+          : undefined,
+      },
+    });
+  }
+
+  @graphql.Mutation(() => Transaction)
+  async updateTransaction(
+    @graphql.Args() args: UpdateTransactionArgs
+  ): Promise<Transaction | null> {
+    try {
+      return await this.service.updateTransaction({
+        ...args,
+        data: {
+          ...args.data,
+
+          customer: args.data.customer
+            ? {
+                connect: args.data.customer,
+              }
+            : undefined,
+
+          paymentMethod: args.data.paymentMethod
+            ? {
+                connect: args.data.paymentMethod,
+              }
+            : undefined,
+        },
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  @graphql.Mutation(() => Transaction)
   async deleteTransaction(
     @graphql.Args() args: DeleteTransactionArgs
   ): Promise<Transaction | null> {
@@ -64,5 +125,35 @@ export class TransactionResolverBase {
       }
       throw error;
     }
+  }
+
+  @graphql.ResolveField(() => Customer, {
+    nullable: true,
+    name: "customer",
+  })
+  async getCustomer(
+    @graphql.Parent() parent: Transaction
+  ): Promise<Customer | null> {
+    const result = await this.service.getCustomer(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
+  }
+
+  @graphql.ResolveField(() => PaymentMethod, {
+    nullable: true,
+    name: "paymentMethod",
+  })
+  async getPaymentMethod(
+    @graphql.Parent() parent: Transaction
+  ): Promise<PaymentMethod | null> {
+    const result = await this.service.getPaymentMethod(parent.id);
+
+    if (!result) {
+      return null;
+    }
+    return result;
   }
 }

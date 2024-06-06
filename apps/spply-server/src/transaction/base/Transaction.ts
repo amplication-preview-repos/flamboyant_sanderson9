@@ -11,11 +11,30 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString } from "class-validator";
+import {
+  IsNumber,
+  IsOptional,
+  IsDate,
+  ValidateNested,
+  IsString,
+} from "class-validator";
 import { Type } from "class-transformer";
+import { Customer } from "../../customer/base/Customer";
+import { PaymentMethod } from "../../paymentMethod/base/PaymentMethod";
 
 @ObjectType()
 class Transaction {
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  amount!: number | null;
+
   @ApiProperty({
     required: true,
   })
@@ -25,12 +44,41 @@ class Transaction {
   createdAt!: Date;
 
   @ApiProperty({
+    required: false,
+    type: () => Customer,
+  })
+  @ValidateNested()
+  @Type(() => Customer)
+  @IsOptional()
+  customer?: Customer | null;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  date!: Date | null;
+
+  @ApiProperty({
     required: true,
     type: String,
   })
   @IsString()
   @Field(() => String)
   id!: string;
+
+  @ApiProperty({
+    required: false,
+    type: () => PaymentMethod,
+  })
+  @ValidateNested()
+  @Type(() => PaymentMethod)
+  @IsOptional()
+  paymentMethod?: PaymentMethod | null;
 
   @ApiProperty({
     required: true,

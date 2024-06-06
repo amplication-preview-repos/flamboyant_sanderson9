@@ -17,7 +17,11 @@ import { Customer } from "./Customer";
 import { CustomerCountArgs } from "./CustomerCountArgs";
 import { CustomerFindManyArgs } from "./CustomerFindManyArgs";
 import { CustomerFindUniqueArgs } from "./CustomerFindUniqueArgs";
+import { CreateCustomerArgs } from "./CreateCustomerArgs";
+import { UpdateCustomerArgs } from "./UpdateCustomerArgs";
 import { DeleteCustomerArgs } from "./DeleteCustomerArgs";
+import { TransactionFindManyArgs } from "../../transaction/base/TransactionFindManyArgs";
+import { Transaction } from "../../transaction/base/Transaction";
 import { CustomerService } from "../customer.service";
 @graphql.Resolver(() => Customer)
 export class CustomerResolverBase {
@@ -51,6 +55,35 @@ export class CustomerResolverBase {
   }
 
   @graphql.Mutation(() => Customer)
+  async createCustomer(
+    @graphql.Args() args: CreateCustomerArgs
+  ): Promise<Customer> {
+    return await this.service.createCustomer({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @graphql.Mutation(() => Customer)
+  async updateCustomer(
+    @graphql.Args() args: UpdateCustomerArgs
+  ): Promise<Customer | null> {
+    try {
+      return await this.service.updateCustomer({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  @graphql.Mutation(() => Customer)
   async deleteCustomer(
     @graphql.Args() args: DeleteCustomerArgs
   ): Promise<Customer | null> {
@@ -64,5 +97,19 @@ export class CustomerResolverBase {
       }
       throw error;
     }
+  }
+
+  @graphql.ResolveField(() => [Transaction], { name: "transactions" })
+  async findTransactions(
+    @graphql.Parent() parent: Customer,
+    @graphql.Args() args: TransactionFindManyArgs
+  ): Promise<Transaction[]> {
+    const results = await this.service.findTransactions(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 }

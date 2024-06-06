@@ -22,6 +22,9 @@ import { Customer } from "./Customer";
 import { CustomerFindManyArgs } from "./CustomerFindManyArgs";
 import { CustomerWhereUniqueInput } from "./CustomerWhereUniqueInput";
 import { CustomerUpdateInput } from "./CustomerUpdateInput";
+import { TransactionFindManyArgs } from "../../transaction/base/TransactionFindManyArgs";
+import { Transaction } from "../../transaction/base/Transaction";
+import { TransactionWhereUniqueInput } from "../../transaction/base/TransactionWhereUniqueInput";
 
 export class CustomerControllerBase {
   constructor(protected readonly service: CustomerService) {}
@@ -34,7 +37,9 @@ export class CustomerControllerBase {
       data: data,
       select: {
         createdAt: true,
+        email: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -49,7 +54,9 @@ export class CustomerControllerBase {
       ...args,
       select: {
         createdAt: true,
+        email: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -65,7 +72,9 @@ export class CustomerControllerBase {
       where: params,
       select: {
         createdAt: true,
+        email: true,
         id: true,
+        name: true,
         updatedAt: true,
       },
     });
@@ -90,7 +99,9 @@ export class CustomerControllerBase {
         data: data,
         select: {
           createdAt: true,
+          email: true,
           id: true,
+          name: true,
           updatedAt: true,
         },
       });
@@ -115,7 +126,9 @@ export class CustomerControllerBase {
         where: params,
         select: {
           createdAt: true,
+          email: true,
           id: true,
+          name: true,
           updatedAt: true,
         },
       });
@@ -127,5 +140,95 @@ export class CustomerControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.Get("/:id/transactions")
+  @ApiNestedQuery(TransactionFindManyArgs)
+  async findTransactions(
+    @common.Req() request: Request,
+    @common.Param() params: CustomerWhereUniqueInput
+  ): Promise<Transaction[]> {
+    const query = plainToClass(TransactionFindManyArgs, request.query);
+    const results = await this.service.findTransactions(params.id, {
+      ...query,
+      select: {
+        amount: true,
+        createdAt: true,
+
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+
+        date: true,
+        id: true,
+
+        paymentMethod: {
+          select: {
+            id: true,
+          },
+        },
+
+        updatedAt: true,
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/transactions")
+  async connectTransactions(
+    @common.Param() params: CustomerWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        connect: body,
+      },
+    };
+    await this.service.updateCustomer({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/transactions")
+  async updateTransactions(
+    @common.Param() params: CustomerWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        set: body,
+      },
+    };
+    await this.service.updateCustomer({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/transactions")
+  async disconnectTransactions(
+    @common.Param() params: CustomerWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        disconnect: body,
+      },
+    };
+    await this.service.updateCustomer({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

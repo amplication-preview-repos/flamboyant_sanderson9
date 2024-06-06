@@ -9,5 +9,60 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class TransactionCreateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsNumber, IsOptional, ValidateNested, IsDate } from "class-validator";
+import { CustomerWhereUniqueInput } from "../../customer/base/CustomerWhereUniqueInput";
+import { Type } from "class-transformer";
+import { PaymentMethodWhereUniqueInput } from "../../paymentMethod/base/PaymentMethodWhereUniqueInput";
+
+@InputType()
+class TransactionCreateInput {
+  @ApiProperty({
+    required: false,
+    type: Number,
+  })
+  @IsNumber()
+  @IsOptional()
+  @Field(() => Number, {
+    nullable: true,
+  })
+  amount?: number | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => CustomerWhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => CustomerWhereUniqueInput)
+  @IsOptional()
+  @Field(() => CustomerWhereUniqueInput, {
+    nullable: true,
+  })
+  customer?: CustomerWhereUniqueInput | null;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsDate()
+  @Type(() => Date)
+  @IsOptional()
+  @Field(() => Date, {
+    nullable: true,
+  })
+  date?: Date | null;
+
+  @ApiProperty({
+    required: false,
+    type: () => PaymentMethodWhereUniqueInput,
+  })
+  @ValidateNested()
+  @Type(() => PaymentMethodWhereUniqueInput)
+  @IsOptional()
+  @Field(() => PaymentMethodWhereUniqueInput, {
+    nullable: true,
+  })
+  paymentMethod?: PaymentMethodWhereUniqueInput | null;
+}
+
 export { TransactionCreateInput as TransactionCreateInput };

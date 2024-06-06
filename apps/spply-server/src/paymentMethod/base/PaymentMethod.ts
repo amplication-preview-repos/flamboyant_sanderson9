@@ -11,8 +11,19 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { ObjectType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsString } from "class-validator";
+import {
+  IsDate,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  IsEnum,
+} from "class-validator";
 import { Type } from "class-transformer";
+import { IsJSONValue } from "../../validators";
+import { GraphQLJSON } from "graphql-type-json";
+import { JsonValue } from "type-fest";
+import { Transaction } from "../../transaction/base/Transaction";
+import { EnumPaymentMethodTypeField } from "./EnumPaymentMethodTypeField";
 
 @ObjectType()
 class PaymentMethod {
@@ -25,12 +36,42 @@ class PaymentMethod {
   createdAt!: Date;
 
   @ApiProperty({
+    required: false,
+  })
+  @IsJSONValue()
+  @IsOptional()
+  @Field(() => GraphQLJSON, {
+    nullable: true,
+  })
+  details!: JsonValue;
+
+  @ApiProperty({
     required: true,
     type: String,
   })
   @IsString()
   @Field(() => String)
   id!: string;
+
+  @ApiProperty({
+    required: false,
+    type: () => [Transaction],
+  })
+  @ValidateNested()
+  @Type(() => Transaction)
+  @IsOptional()
+  transactions?: Array<Transaction>;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumPaymentMethodTypeField,
+  })
+  @IsEnum(EnumPaymentMethodTypeField)
+  @IsOptional()
+  @Field(() => EnumPaymentMethodTypeField, {
+    nullable: true,
+  })
+  typeField?: "Option1" | null;
 
   @ApiProperty({
     required: true,

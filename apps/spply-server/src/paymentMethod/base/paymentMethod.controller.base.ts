@@ -22,6 +22,9 @@ import { PaymentMethod } from "./PaymentMethod";
 import { PaymentMethodFindManyArgs } from "./PaymentMethodFindManyArgs";
 import { PaymentMethodWhereUniqueInput } from "./PaymentMethodWhereUniqueInput";
 import { PaymentMethodUpdateInput } from "./PaymentMethodUpdateInput";
+import { TransactionFindManyArgs } from "../../transaction/base/TransactionFindManyArgs";
+import { Transaction } from "../../transaction/base/Transaction";
+import { TransactionWhereUniqueInput } from "../../transaction/base/TransactionWhereUniqueInput";
 
 export class PaymentMethodControllerBase {
   constructor(protected readonly service: PaymentMethodService) {}
@@ -34,7 +37,9 @@ export class PaymentMethodControllerBase {
       data: data,
       select: {
         createdAt: true,
+        details: true,
         id: true,
+        typeField: true,
         updatedAt: true,
       },
     });
@@ -51,7 +56,9 @@ export class PaymentMethodControllerBase {
       ...args,
       select: {
         createdAt: true,
+        details: true,
         id: true,
+        typeField: true,
         updatedAt: true,
       },
     });
@@ -67,7 +74,9 @@ export class PaymentMethodControllerBase {
       where: params,
       select: {
         createdAt: true,
+        details: true,
         id: true,
+        typeField: true,
         updatedAt: true,
       },
     });
@@ -92,7 +101,9 @@ export class PaymentMethodControllerBase {
         data: data,
         select: {
           createdAt: true,
+          details: true,
           id: true,
+          typeField: true,
           updatedAt: true,
         },
       });
@@ -117,7 +128,9 @@ export class PaymentMethodControllerBase {
         where: params,
         select: {
           createdAt: true,
+          details: true,
           id: true,
+          typeField: true,
           updatedAt: true,
         },
       });
@@ -129,5 +142,95 @@ export class PaymentMethodControllerBase {
       }
       throw error;
     }
+  }
+
+  @common.Get("/:id/transactions")
+  @ApiNestedQuery(TransactionFindManyArgs)
+  async findTransactions(
+    @common.Req() request: Request,
+    @common.Param() params: PaymentMethodWhereUniqueInput
+  ): Promise<Transaction[]> {
+    const query = plainToClass(TransactionFindManyArgs, request.query);
+    const results = await this.service.findTransactions(params.id, {
+      ...query,
+      select: {
+        amount: true,
+        createdAt: true,
+
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+
+        date: true,
+        id: true,
+
+        paymentMethod: {
+          select: {
+            id: true,
+          },
+        },
+
+        updatedAt: true,
+      },
+    });
+    if (results === null) {
+      throw new errors.NotFoundException(
+        `No resource was found for ${JSON.stringify(params)}`
+      );
+    }
+    return results;
+  }
+
+  @common.Post("/:id/transactions")
+  async connectTransactions(
+    @common.Param() params: PaymentMethodWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        connect: body,
+      },
+    };
+    await this.service.updatePaymentMethod({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Patch("/:id/transactions")
+  async updateTransactions(
+    @common.Param() params: PaymentMethodWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        set: body,
+      },
+    };
+    await this.service.updatePaymentMethod({
+      where: params,
+      data,
+      select: { id: true },
+    });
+  }
+
+  @common.Delete("/:id/transactions")
+  async disconnectTransactions(
+    @common.Param() params: PaymentMethodWhereUniqueInput,
+    @common.Body() body: TransactionWhereUniqueInput[]
+  ): Promise<void> {
+    const data = {
+      transactions: {
+        disconnect: body,
+      },
+    };
+    await this.service.updatePaymentMethod({
+      where: params,
+      data,
+      select: { id: true },
+    });
   }
 }

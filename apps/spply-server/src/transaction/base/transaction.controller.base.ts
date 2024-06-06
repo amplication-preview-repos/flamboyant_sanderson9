@@ -31,10 +31,40 @@ export class TransactionControllerBase {
     @common.Body() data: TransactionCreateInput
   ): Promise<Transaction> {
     return await this.service.createTransaction({
-      data: data,
+      data: {
+        ...data,
+
+        customer: data.customer
+          ? {
+              connect: data.customer,
+            }
+          : undefined,
+
+        paymentMethod: data.paymentMethod
+          ? {
+              connect: data.paymentMethod,
+            }
+          : undefined,
+      },
       select: {
+        amount: true,
         createdAt: true,
+
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+
+        date: true,
         id: true,
+
+        paymentMethod: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -48,8 +78,24 @@ export class TransactionControllerBase {
     return this.service.transactions({
       ...args,
       select: {
+        amount: true,
         createdAt: true,
+
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+
+        date: true,
         id: true,
+
+        paymentMethod: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -64,8 +110,24 @@ export class TransactionControllerBase {
     const result = await this.service.transaction({
       where: params,
       select: {
+        amount: true,
         createdAt: true,
+
+        customer: {
+          select: {
+            id: true,
+          },
+        },
+
+        date: true,
         id: true,
+
+        paymentMethod: {
+          select: {
+            id: true,
+          },
+        },
+
         updatedAt: true,
       },
     });
@@ -87,10 +149,40 @@ export class TransactionControllerBase {
     try {
       return await this.service.updateTransaction({
         where: params,
-        data: data,
+        data: {
+          ...data,
+
+          customer: data.customer
+            ? {
+                connect: data.customer,
+              }
+            : undefined,
+
+          paymentMethod: data.paymentMethod
+            ? {
+                connect: data.paymentMethod,
+              }
+            : undefined,
+        },
         select: {
+          amount: true,
           createdAt: true,
+
+          customer: {
+            select: {
+              id: true,
+            },
+          },
+
+          date: true,
           id: true,
+
+          paymentMethod: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
         },
       });
@@ -114,8 +206,24 @@ export class TransactionControllerBase {
       return await this.service.deleteTransaction({
         where: params,
         select: {
+          amount: true,
           createdAt: true,
+
+          customer: {
+            select: {
+              id: true,
+            },
+          },
+
+          date: true,
           id: true,
+
+          paymentMethod: {
+            select: {
+              id: true,
+            },
+          },
+
           updatedAt: true,
         },
       });

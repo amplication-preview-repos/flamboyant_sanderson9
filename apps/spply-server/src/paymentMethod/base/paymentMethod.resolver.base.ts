@@ -17,7 +17,11 @@ import { PaymentMethod } from "./PaymentMethod";
 import { PaymentMethodCountArgs } from "./PaymentMethodCountArgs";
 import { PaymentMethodFindManyArgs } from "./PaymentMethodFindManyArgs";
 import { PaymentMethodFindUniqueArgs } from "./PaymentMethodFindUniqueArgs";
+import { CreatePaymentMethodArgs } from "./CreatePaymentMethodArgs";
+import { UpdatePaymentMethodArgs } from "./UpdatePaymentMethodArgs";
 import { DeletePaymentMethodArgs } from "./DeletePaymentMethodArgs";
+import { TransactionFindManyArgs } from "../../transaction/base/TransactionFindManyArgs";
+import { Transaction } from "../../transaction/base/Transaction";
 import { PaymentMethodService } from "../paymentMethod.service";
 @graphql.Resolver(() => PaymentMethod)
 export class PaymentMethodResolverBase {
@@ -51,6 +55,35 @@ export class PaymentMethodResolverBase {
   }
 
   @graphql.Mutation(() => PaymentMethod)
+  async createPaymentMethod(
+    @graphql.Args() args: CreatePaymentMethodArgs
+  ): Promise<PaymentMethod> {
+    return await this.service.createPaymentMethod({
+      ...args,
+      data: args.data,
+    });
+  }
+
+  @graphql.Mutation(() => PaymentMethod)
+  async updatePaymentMethod(
+    @graphql.Args() args: UpdatePaymentMethodArgs
+  ): Promise<PaymentMethod | null> {
+    try {
+      return await this.service.updatePaymentMethod({
+        ...args,
+        data: args.data,
+      });
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        throw new GraphQLError(
+          `No resource was found for ${JSON.stringify(args.where)}`
+        );
+      }
+      throw error;
+    }
+  }
+
+  @graphql.Mutation(() => PaymentMethod)
   async deletePaymentMethod(
     @graphql.Args() args: DeletePaymentMethodArgs
   ): Promise<PaymentMethod | null> {
@@ -64,5 +97,19 @@ export class PaymentMethodResolverBase {
       }
       throw error;
     }
+  }
+
+  @graphql.ResolveField(() => [Transaction], { name: "transactions" })
+  async findTransactions(
+    @graphql.Parent() parent: PaymentMethod,
+    @graphql.Args() args: TransactionFindManyArgs
+  ): Promise<Transaction[]> {
+    const results = await this.service.findTransactions(parent.id, args);
+
+    if (!results) {
+      return [];
+    }
+
+    return results;
   }
 }

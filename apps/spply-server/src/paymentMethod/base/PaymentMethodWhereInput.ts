@@ -11,12 +11,26 @@ https://docs.amplication.com/how-to/custom-code
   */
 import { InputType, Field } from "@nestjs/graphql";
 import { ApiProperty } from "@nestjs/swagger";
-import { StringFilter } from "../../util/StringFilter";
+import { JsonFilter } from "../../util/JsonFilter";
 import { Type } from "class-transformer";
-import { IsOptional } from "class-validator";
+import { IsOptional, ValidateNested, IsEnum } from "class-validator";
+import { StringFilter } from "../../util/StringFilter";
+import { TransactionListRelationFilter } from "../../transaction/base/TransactionListRelationFilter";
+import { EnumPaymentMethodTypeField } from "./EnumPaymentMethodTypeField";
 
 @InputType()
 class PaymentMethodWhereInput {
+  @ApiProperty({
+    required: false,
+    type: JsonFilter,
+  })
+  @Type(() => JsonFilter)
+  @IsOptional()
+  @Field(() => JsonFilter, {
+    nullable: true,
+  })
+  details?: JsonFilter;
+
   @ApiProperty({
     required: false,
     type: StringFilter,
@@ -27,6 +41,29 @@ class PaymentMethodWhereInput {
     nullable: true,
   })
   id?: StringFilter;
+
+  @ApiProperty({
+    required: false,
+    type: () => TransactionListRelationFilter,
+  })
+  @ValidateNested()
+  @Type(() => TransactionListRelationFilter)
+  @IsOptional()
+  @Field(() => TransactionListRelationFilter, {
+    nullable: true,
+  })
+  transactions?: TransactionListRelationFilter;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumPaymentMethodTypeField,
+  })
+  @IsEnum(EnumPaymentMethodTypeField)
+  @IsOptional()
+  @Field(() => EnumPaymentMethodTypeField, {
+    nullable: true,
+  })
+  typeField?: "Option1";
 }
 
 export { PaymentMethodWhereInput as PaymentMethodWhereInput };

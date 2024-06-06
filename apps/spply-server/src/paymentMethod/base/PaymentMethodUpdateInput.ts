@@ -9,5 +9,50 @@ https://docs.amplication.com/how-to/custom-code
 
 ------------------------------------------------------------------------------
   */
-class PaymentMethodUpdateInput {}
+import { InputType, Field } from "@nestjs/graphql";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsJSONValue } from "../../validators";
+import { IsOptional, ValidateNested, IsEnum } from "class-validator";
+import { GraphQLJSON } from "graphql-type-json";
+import { InputJsonValue } from "../../types";
+import { TransactionUpdateManyWithoutPaymentMethodsInput } from "./TransactionUpdateManyWithoutPaymentMethodsInput";
+import { Type } from "class-transformer";
+import { EnumPaymentMethodTypeField } from "./EnumPaymentMethodTypeField";
+
+@InputType()
+class PaymentMethodUpdateInput {
+  @ApiProperty({
+    required: false,
+  })
+  @IsJSONValue()
+  @IsOptional()
+  @Field(() => GraphQLJSON, {
+    nullable: true,
+  })
+  details?: InputJsonValue;
+
+  @ApiProperty({
+    required: false,
+    type: () => TransactionUpdateManyWithoutPaymentMethodsInput,
+  })
+  @ValidateNested()
+  @Type(() => TransactionUpdateManyWithoutPaymentMethodsInput)
+  @IsOptional()
+  @Field(() => TransactionUpdateManyWithoutPaymentMethodsInput, {
+    nullable: true,
+  })
+  transactions?: TransactionUpdateManyWithoutPaymentMethodsInput;
+
+  @ApiProperty({
+    required: false,
+    enum: EnumPaymentMethodTypeField,
+  })
+  @IsEnum(EnumPaymentMethodTypeField)
+  @IsOptional()
+  @Field(() => EnumPaymentMethodTypeField, {
+    nullable: true,
+  })
+  typeField?: "Option1" | null;
+}
+
 export { PaymentMethodUpdateInput as PaymentMethodUpdateInput };
